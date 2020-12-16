@@ -1,4 +1,4 @@
-import { LitElement, property, query } from "lit-element";
+import { LitElement, property } from "lit-element";
 import { html, svg, TemplateResult } from "lit-html";
 import clsx from 'clsx';
 import style from "./style.pcss";
@@ -63,112 +63,87 @@ export class NsiAudioPlayer extends LitElement {
     this.repeat = !this.repeat;
   }
 
+  protected onAudioReady() {
+    this.isReady = true;
+  };
+  protected onAudioPlay() {
+    this.isPlaying = true;
+  };
+  protected onAudioPause() {
+    this.isPlaying = false;
+  };
+  protected onAudioEnded() {
+    this.isPlaying = false;
+  };
+  protected onAudioTimeUpdate() {
+    this.currentTime = this.audio.currentTime;
+  };
+  protected toggleControlDisplay() {
+    this.controlDisplay = !this.controlDisplay;
+  }
+  protected onAudioVolumeChange() {
+    this.volume = Number(this.volumeInput.value);
+  }
+  protected onAudioWaiting = null;
+  protected onAudioLoadedMeta = (e: any) => {
+    console.log(this);
+  }
+  protected playPause() {
+    this.isPlaying ? this.pause() : this.play();
+  }
+
+  protected onClickProgressBar(e: MouseEvent) {
+    const bar = this.shadowRoot?.querySelector('#progress_bar');
+    const percentage = e.offsetX / (bar as HTMLDivElement).offsetWidth;
+    this.currentTime = this.duration * percentage;
+    this.audio.currentTime = this.duration * percentage;
+  }
+
   render() {
-    const onAudioReady = () => {
-      this.isReady = true;
-    };
-    const onAudioPlay = () => {
-      this.isPlaying = true;
-    };
-    const onAudioPause = () => {
-      this.isPlaying = false;
-    };
-    const onAudioEnded = () => {
-      this.isPlaying = false;
-    };
-    const onAudioTimeUpdate = () => {
-      this.currentTime = this.audio.currentTime;
-    };
-    const openControlDisplay = () => {
-      this.controlDisplay = true;
-    }
-    const closeControlDisplay = () => {
-      this.controlDisplay = false;
-    }
-    const onAudioVolumeChange = () => {
-      this.volume = Number(this.volumeInput.value);
-    }
-    const onAudioWaiting = null;
-    const onAudioLoadedMeta = (e: any) => {
-      console.log(this);
-    }
-
-    const onClickProgressBar = (e: MouseEvent) => {
-      const bar = this.shadowRoot?.querySelector('#progress_bar');
-      const percentage = e.offsetX / (bar as HTMLDivElement).offsetWidth;
-      this.currentTime = this.duration * percentage;
-      this.audio.currentTime = this.duration * percentage;
-    }
-
     return html`
       <style>${style}</style>
       <div class="nsi-audio-player round">
         <audio
           id="audio"
-          .src="${this.src || ""}"
+          .src=${this.src || ""}
           ?autoplay=${this.autoplay}
-          @loadeddata=${onAudioReady}
-          @play=${onAudioPlay}
-          @pause=${onAudioPause}
-          @ended=${onAudioEnded}
-          @timeupdate=${onAudioTimeUpdate}
-          @volumechange=${onAudioVolumeChange}
-          @waiting=${onAudioWaiting}
-          @loadedmetadata=${onAudioLoadedMeta}
+          @loadeddata=${this.onAudioReady}
+          @play=${this.onAudioPlay}
+          @pause=${this.onAudioPause}
+          @ended=${this.onAudioEnded}
+          @timeupdate=${this.onAudioTimeUpdate}
+          @volumechange=${this.onAudioVolumeChange}
+          @waiting=${this.onAudioWaiting}
+          @loadedmetadata=${this.onAudioLoadedMeta}
         ></audio>
-        <div class="pp-button-container">
-          ${this.isPlaying
-            ? html`
-              <div class="button pp-button" @click="${this.pause}">
-                ${svgIcon(pauseIconPath, "pause-icon")}
-              </div>
-            `
-            : html`
-              <div class="button pp-button" @click="${this.play}">
-                ${svgIcon(playIconPath, "play-icon")}
-              </div>
-            `}
+        <div class="button pp-button" @click=${this.playPause}>
+          ${svgIcon(this.isPlaying ? pauseIconPath : playIconPath, "play-pause-icon")}
         </div>
-        <div id="progress_bar" class="progress-bar" @click=${onClickProgressBar} }>
+        <div id="progress_bar" class="progress-bar" @click=${this.onClickProgressBar} }>
           <div class="progress-inner" style="width: ${this.progressPercentage}%"></div>
           <div class="progress-scrubber"></div>
         </div>
         <div class="audio-info">
           <span class="audio-title">${this.title || ""}</span>
         </div>
-        <div class="audio-time-display">
-          <span class="audio-current">${numberToTime(this.currentTime)}</span>
-          <span class="audio-duration">${numberToTime(this.duration)}</span>
-        </div>
+        <span class="remaining-time">${numberToTime(this.duration - (this.currentTime || 0))}</span>
         <div class="controls-container">
           <div class=${clsx("controls", { open: this.controlDisplay || false })}>
             <div class="volume-display">
               <div class="volume-button down" tabindex="0">
                 ${svgIcon(volumeDownIconPath, "volume-icon")}
               </div>
-              <input id="volume" class="volume-slider" type="range" min="0" max="1" step="0.01" value=${this.volume} @change=${onAudioVolumeChange} />
+              <input id="volume" class="volume-slider" type="range" min="0" max="1" step="0.01" value=${this.volume} @change=${this.onAudioVolumeChange} />
               <div class="volume-button up" tabindex="0">
                 ${svgIcon(volumeUpIconPath, "volume-icon")}
               </div>
             </div>
-            <div class="repeat-button-container" tabindex="0">
-              <div class=${clsx("button", "repeat-button", { on: this.repeat })} @click=${this.toggleRepeat}>
-                ${svgIcon(repeatIconPath, "repeat-icon")}
-              </div>
+            <div class=${clsx("button", "repeat-button", { on: this.repeat })} @click=${this.toggleRepeat} tabindex="0">
+              ${svgIcon(repeatIconPath, "repeat-icon")}
             </div>
           </div>
-          <div class="more-less-button-container">
-            ${this.controlDisplay ?
-              html`
-                <div class="button more-button" @click=${closeControlDisplay} tabindex="0">
-                  ${svgIcon(moreIcon, "more-icon")}
-                </div>
-              ` :
-              html`
-                <div class="button more-button" @click=${openControlDisplay} tabindex="0">
-                  ${svgIcon(moreIcon, "more-icon")}
-                </div>
-            `}
+          <div class="button more-button" @click=${this.toggleControlDisplay} tabindex="0">
+            ${svgIcon(moreIcon, "more-icon")}
           </div>
         </div>
       </div>
