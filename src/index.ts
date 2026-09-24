@@ -9,6 +9,7 @@ const repeatIconPath = svg`<path d="M0 0h24v24H0z" fill="none"/><path d="M7 7h10
 const volumeDownIconPath = svg`<path d="M18.5 12c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM5 9v6h4l5 5V4L9 9H5z"/><path d="M0 0h24v24H0z" fill="none"/>`;
 const volumeUpIconPath = svg`<path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/><path d="M0 0h24v24H0z" fill="none"/>`;
 const moreIcon = svg`<path d="M0 0h24v24H0z" fill="none"/><path d="M6 10c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm12 0c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm-6 0c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/>`;
+const closeIcon = svg`<path d="M18.3 5.71c-.39-.39-1.02-.39-1.41 0L12 10.59 7.11 5.7c-.39-.39-1.02-.39-1.41 0-.39.39-.39 1.02 0 1.41L10.59 12 5.7 16.89c-.39.39-.39 1.02 0 1.41.39.39 1.02.39 1.41 0L12 13.41l4.89 4.89c.39.39 1.02.39 1.41 0 .39-.39.39-1.02 0-1.41L13.41 12l4.89-4.89c.38-.38.38-1.02 0-1.4z"/>`;
 
 const svgIcon = (path: TemplateResult, className: string) => {
   return svg`
@@ -143,7 +144,7 @@ export class NsiAudioPlayer extends LitElement {
             </div>
           </div>
           <div class="button more-button" @click=${this.toggleControlDisplay} tabindex="0">
-            ${svgIcon(moreIcon, "more-icon")}
+            ${this.controlDisplay ? svgIcon(closeIcon, "close-icon") : svgIcon(moreIcon, "more-icon")}
           </div>
         </div>
       </div>
